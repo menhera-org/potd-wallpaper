@@ -113,7 +113,13 @@ impl MacosProvider {
     }
 
     fn next_wallpaper_path(&self) -> PathBuf {
-        let counter = self.wallpaper_counter.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        let counter = self.wallpaper_counter.fetch_xor(1, std::sync::atomic::Ordering::Relaxed);
+        let path = self.wallpaper_directory.join(format!("wallpaper-{}.jpg", counter));
+        path
+    }
+
+    fn prev_wallpaper_path(&self) -> PathBuf {
+        let counter = self.wallpaper_counter.load(std::sync::atomic::Ordering::Relaxed);
         let path = self.wallpaper_directory.join(format!("wallpaper-{}.jpg", counter));
         path
     }
@@ -125,12 +131,18 @@ impl PlatformProvider for MacosProvider {
     }
 
     fn set_desktop_wallpaper_url(&self, url: &str) -> Result<(), std::io::Error> {
-        let path = self.next_wallpaper_path();
+        let mut path = self.next_wallpaper_path();
+        if path.exists() {
+            path = self.next_wallpaper_path();
+        }
         tokio::runtime::Runtime::new().unwrap().block_on(async {
             let bytes = self.http_client.fetch_bytes(url, true).await.map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
             let mut file = tokio::fs::File::create(&path).await?;
             file.write_all(&bytes).await?;
-            set_desktop_wallpaper(&path.to_string_lossy()).await
+            set_desktop_wallpaper(&path.to_string_lossy()).await?;
+            let prev_path = self.prev_wallpaper_path();
+            let _ = tokio::fs::remove_file(prev_path).await;
+            Ok(())
         })
     }
 }
