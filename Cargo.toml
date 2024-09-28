@@ -1,0 +1,24 @@
+[package]
+name = "potd-wallpaper"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0 OR MPL-2.0"
+readme = "README.md"
+authors = ["metastable-void"]
+repository = "https://github.com/menhera-org/potd-wallpaper"
+description = "Get desktop wallpapers from Wikimedia Commons Picture of the Day feed"
+homepage = "https://github.com/menhera-org/potd-wallpaper"
+
+[dependencies]
+clap = { version = "4.5", features = ["derive"] }
+potd = "0.1.0"
+openssl = { version = "*", features = ["vendored"] }
+tokio = { version = "1", features = ["full"] }
+log = "0.4"
+parking_lot = "0.12.3"
+rand = "0.8.5"
+env_logger = "0.11.5"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+dbus = { version = "0.9.7", features = ["vendored"] }
+dbus-tokio = "0.7.6"
