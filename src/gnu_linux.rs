@@ -27,7 +27,7 @@ impl PlatformInstaller for GnuLinuxInstaller {
         let current_exe = std::env::current_exe()?;
         std::fs::copy(&current_exe, &install_path)?;
 
-        let service_path = get_home_relative_path(".local/lib/systemd/user/potd-wallpaper.service");
+        let service_path = get_home_relative_path(".local/share/systemd/user/potd-wallpaper.service");
         std::fs::create_dir_all(service_path.parent().unwrap())?;
         let service_file = USER_SERVICE_TEMPLATE.replace("%EXEC%", &install_path.to_string_lossy());
         std::fs::write(&service_path, service_file)?;
