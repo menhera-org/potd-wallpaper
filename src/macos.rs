@@ -144,7 +144,9 @@ impl PlatformProvider for MacosProvider {
             let bytes = self.http_client.fetch_bytes(url, true).await.map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
             let mut file = tokio::fs::File::create(&path).await?;
             file.write_all(&bytes).await?;
+            tokio::time::sleep(std::time::Duration::from_secs(1)).await;
             set_desktop_wallpaper(&path.to_string_lossy()).await?;
+            tokio::time::sleep(std::time::Duration::from_secs(1)).await;
             let prev_path = self.prev_wallpaper_path();
             let _ = tokio::fs::remove_file(prev_path).await;
             Ok(())
