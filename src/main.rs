@@ -4,6 +4,9 @@ mod path;
 #[cfg(target_os = "macos")]
 mod macos;
 
+#[cfg(target_os = "linux")]
+mod gnu_linux;
+
 use std::sync::Arc;
 use parking_lot::RwLock;
 use rand::Rng;
@@ -95,12 +98,19 @@ impl State {
     }
 }
 
+#[allow(unused_variables)]
 fn build_provider(state: &State) -> Box<dyn PlatformProvider> {
     #[cfg(target_os = "macos")]
     return Box::new(macos::MacosProvider::new(&state).unwrap());
 
     #[cfg(not(target_os = "macos"))]
-    panic!("unsupported platform");
+    {
+        #[cfg(target_os = "linux")]
+        return Box::new(gnu_linux::GnuLinuxProvider);
+
+        #[cfg(not(target_os = "linux"))]
+        panic!("unsupported platform");
+    }
 }
 
 fn build_installer() -> Box<dyn PlatformInstaller> {
@@ -108,7 +118,13 @@ fn build_installer() -> Box<dyn PlatformInstaller> {
     return Box::new(macos::MacosInstaller);
 
     #[cfg(not(target_os = "macos"))]
-    panic!("unsupported platform");
+    {
+        #[cfg(target_os = "linux")]
+        return Box::new(gnu_linux::GnuLinuxInstaller);
+
+        #[cfg(not(target_os = "linux"))]
+        panic!("unsupported platform");
+    }
 }
 
 fn install() {
