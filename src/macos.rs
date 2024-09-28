@@ -86,9 +86,14 @@ impl crate::PlatformInstaller for MacosInstaller {
         let agent_plist = AGENT_PLIST_TEMPLATE.replace("%EXEC%", &bin_path.to_string_lossy());
         std::fs::write(&agent_file, agent_plist)?;
 
+        let uid = unsafe { libc::getuid() };
+
+        let spec = format!("gui/{}/{}", uid, "org.menhera.potd-wallpaper");
+
         std::process::Command::new("launchctl")
-            .arg("load")
-            .arg(&agent_file)
+            .arg("kickstart")
+            .arg("-k")
+            .arg(&spec)
             .output()?;
         Ok(())
     }

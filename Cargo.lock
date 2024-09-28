@@ -799,6 +799,7 @@ dependencies = [
  "dbus",
  "dbus-tokio",
  "env_logger",
+ "libc",
  "log",
  "openssl",
  "parking_lot",
